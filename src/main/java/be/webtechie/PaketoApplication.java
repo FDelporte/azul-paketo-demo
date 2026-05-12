@@ -33,7 +33,10 @@ public class PaketoApplication {
     @GetMapping("/version")
     public String version() {
         return "Java " + System.getProperty("java.version")
-                + " (" + System.getProperty("java.vendor") + " "
-                + System.getProperty("java.vendor.version") + ")";
+                + " (Vendor: "
+                + System.getProperty("java.vendor")
+                + ", version: "
+                + System.getProperty("java.vendor.version")
+                + ")";
     }
 }
