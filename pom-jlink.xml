@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.4.5</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>be.webtechie</groupId>
+    <artifactId>azul-paketo-demo-jlink</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>paketo-demo-jlink</name>
+    <description>
+        Spring Boot Paketo demo with jlink enabled to generate a custom minimal JRE.
+        Reduces image size from ~370 MB (full JRE) to ~140 MB.
+
+        NOTE: Spring Boot relies on reflection and classpath scanning at runtime.
+        jdeps may not detect all required modules. Test this image thoroughly before
+        using it in production.
+
+        Build:  ./mvnw spring-boot:build-image -f pom-jlink.xml
+        Run:    docker run --rm -p 8080:8080 paketo-demo-jlink
+    </description>
+
+    <properties>
+        <java.version>25</java.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <image>
+                        <name>paketo-demo-jlink</name>
+                        <buildpacks>
+                            <buildpack>paketobuildpacks/azul-zulu</buildpack>
+                            <buildpack>paketobuildpacks/java</buildpack>
+                        </buildpacks>
+                        <env>
+                            <BP_JVM_VERSION>25</BP_JVM_VERSION>
+                            <!-- Enable jlink to produce a custom minimal JRE -->
+                            <BP_JVM_JLINK_ENABLED>true</BP_JVM_JLINK_ENABLED>
+                            <!--
+                                Optional: override jlink arguments.
+                                Default: - -no-man-pages - -no-header-files - -strip-debug - -compress=1
+                                The example below uses higher compression for a smaller image.
+                            -->
+                            <BP_JVM_JLINK_ARGS>--no-man-pages --no-header-files --strip-debug --compress zip-6</BP_JVM_JLINK_ARGS>
+                        </env>
+                    </image>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

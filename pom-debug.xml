@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.4.5</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>be.webtechie</groupId>
+    <artifactId>azul-paketo-demo-debug</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>paketo-demo-debug</name>
+    <description>
+        Spring Boot Paketo demo with debugging, JMX, JFR, and GC logging enabled.
+        Useful for staging environments. Do not use all options simultaneously in production.
+
+        Build:  ./mvnw spring-boot:build-image -f pom-debug.xml
+        Run:    docker run -p 8080:8080 -p 8000:8000 -p 5000:5000 paketo-demo-debug
+    </description>
+
+    <properties>
+        <java.version>25</java.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <image>
+                        <name>paketo-demo-debug</name>
+                        <buildpacks>
+                            <buildpack>paketobuildpacks/azul-zulu</buildpack>
+                            <buildpack>paketobuildpacks/java</buildpack>
+                        </buildpacks>
+                        <env>
+                            <BP_JVM_VERSION>25</BP_JVM_VERSION>
+                            <!-- Request JDK so tools like jcmd and jmap are available -->
+                            <BP_JVM_TYPE>JDK</BP_JVM_TYPE>
+
+                            <!-- GC logging written to /tmp/gc.log inside the container -->
+                            <BPE_DELIM_JAVA_TOOL_OPTIONS xml:space="preserve"> </BPE_DELIM_JAVA_TOOL_OPTIONS>
+                            <BPE_APPEND_JAVA_TOOL_OPTIONS>-Xlog:gc:/tmp/gc.log</BPE_APPEND_JAVA_TOOL_OPTIONS>
+
+                            <!-- Remote debugging on port 8000 (baked into image as default) -->
+                            <BPE_DEFAULT_BPL_DEBUG_ENABLED>true</BPE_DEFAULT_BPL_DEBUG_ENABLED>
+                            <BPE_DEFAULT_BPL_DEBUG_PORT>8000</BPE_DEFAULT_BPL_DEBUG_PORT>
+
+                            <!-- JMX on port 5000 (baked into image as default) -->
+                            <BPE_DEFAULT_BPL_JMX_ENABLED>true</BPE_DEFAULT_BPL_JMX_ENABLED>
+                            <BPE_DEFAULT_BPL_JMX_PORT>5000</BPE_DEFAULT_BPL_JMX_PORT>
+
+                            <!-- Java Flight Recorder -->
+                            <BPE_DEFAULT_BPL_JFR_ENABLED>true</BPE_DEFAULT_BPL_JFR_ENABLED>
+                            <BPE_DEFAULT_BPL_JFR_ARGS>dumponexit=true,filename=/tmp/rec.jfr,duration=600s</BPE_DEFAULT_BPL_JFR_ARGS>
+                        </env>
+                    </image>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
